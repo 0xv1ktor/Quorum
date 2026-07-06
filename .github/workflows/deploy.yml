@@ -35,7 +35,7 @@ jobs:
           # The deployed dApp reads via the chain default RPC and signs writes
           # through the visitor's wallet — no private key is ever published.
           VITE_GENLAYER_NETWORK: testnet-bradbury
-          VITE_GENLAYER_CONTRACT_ADDRESS: "0xac25788f412Ab7A271799262CdbD65F1Eca1bEC3"
+          VITE_GENLAYER_CONTRACT_ADDRESS: "0xd5E158d670Eedd111AB95A0e5C8867F1fD77c4E0"
         run: npm run build
 
       - name: Upload artifact
