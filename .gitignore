@@ -19,3 +19,4 @@ __pycache__/
 
 # Internal — not published
 GENLAYER_PROJECT_GENERATOR_PROMPT.md
+.vercel
