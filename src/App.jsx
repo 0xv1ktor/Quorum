@@ -9,33 +9,6 @@ import {
 } from './genlayer.js';
 import { connectWallet, hasWallet, onAccountsChanged } from './wallet.js';
 
-const FEATURED = [
-  {
-    title: 'How validator consensus changes community spaces',
-    author: 'Quorum Labs',
-    image:
-      'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80',
-  },
-  {
-    title: 'Writing posts that pass semantic review',
-    author: 'Marta Chen',
-    image:
-      'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80',
-  },
-  {
-    title: 'Why reputation works better when it is public',
-    author: 'Dami Okoro',
-    image:
-      'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=900&q=80',
-  },
-  {
-    title: 'A cleaner model for on-chain moderation',
-    author: 'Pavel Kady',
-    image:
-      'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80',
-  },
-];
-
 const DELIB_STEPS = [
   'Opening validator session',
   'Reading the submission',
@@ -79,7 +52,9 @@ export default function App() {
   const [wallet, setWallet] = useState(null);
   const [walletErr, setWalletErr] = useState(null);
   const [connecting, setConnecting] = useState(false);
+  const [navNotice, setNavNotice] = useState(false);
   const timer = useRef(null);
+  const noticeTimer = useRef(null);
 
   useEffect(() => {
     try {
@@ -136,6 +111,17 @@ export default function App() {
     return () => timer.current && clearInterval(timer.current);
   }, [submitting]);
 
+  useEffect(() => {
+    return () => noticeTimer.current && clearTimeout(noticeTimer.current);
+  }, []);
+
+  function showComingSoon(e) {
+    e.preventDefault();
+    setNavNotice(true);
+    if (noticeTimer.current) clearTimeout(noticeTimer.current);
+    noticeTimer.current = setTimeout(() => setNavNotice(false), 2200);
+  }
+
   async function onConnect() {
     setWalletErr(null);
     setConnecting(true);
@@ -186,9 +172,6 @@ export default function App() {
   const rate = stats.total > 0 ? Math.round((stats.approved / stats.total) * 100) : 0;
   const mm = String(Math.floor(clock / 60)).padStart(2, '0');
   const ss = String(clock % 60).padStart(2, '0');
-  const members = Math.max(1320 + stats.total * 7, 1320);
-  const topAuthors = posts.slice(0, 6);
-
   return (
     <div className="app-shell">
       <Header
@@ -196,15 +179,20 @@ export default function App() {
         connecting={connecting}
         onConnect={onConnect}
         network={config?.network}
+        onComingSoon={showComingSoon}
       />
 
       {walletErr && <div className="toast">{walletErr}</div>}
+      {navNotice && <div className="toast toast-info">Coming soon</div>}
 
       <main className="page">
-        <section className="feature-grid" aria-label="Featured discussions">
-          {FEATURED.map((item) => (
-            <FeaturedCard key={item.title} item={item} />
-          ))}
+        <section className="hero-panel">
+          <div>
+            <span className="kicker">Live on GenLayer</span>
+            <h1>{topic || 'Quorum Board'}</h1>
+            <p>Post to a public board where validator consensus decides what enters the record.</p>
+          </div>
+          <a href="#composer" className="primary-button">Create post</a>
         </section>
 
         <section className="content-grid">
@@ -240,11 +228,10 @@ export default function App() {
           <aside className="side-column">
             <CommunityCard
               topic={topic}
-              members={members}
               contractAddress={config?.contractAddress}
               network={config?.network}
+              total={stats.total}
             />
-            <Streaks authors={topAuthors} />
           </aside>
         </section>
       </main>
@@ -252,7 +239,7 @@ export default function App() {
   );
 }
 
-function Header({ wallet, connecting, onConnect, network }) {
+function Header({ wallet, connecting, onConnect, network, onComingSoon }) {
   return (
     <header className="topbar">
       <div className="brand">
@@ -260,13 +247,10 @@ function Header({ wallet, connecting, onConnect, network }) {
         <span>Quorum</span>
       </div>
       <nav className="nav-links" aria-label="Primary">
-        <a href="#feed">Feed</a>
-        <a href="#composer">Post</a>
-        <a href="#community">Community</a>
+        <a href="#feed" onClick={onComingSoon}>Feed</a>
+        <a href="#composer" onClick={onComingSoon}>Post</a>
+        <a href="#community" onClick={onComingSoon}>Community</a>
       </nav>
-      <label className="search" aria-label="Search">
-        <span>Search...</span>
-      </label>
       <div className="top-actions">
         <span className="network-pill">{network ?? 'Bradbury'}</span>
         <WalletButton wallet={wallet} connecting={connecting} onConnect={onConnect} />
@@ -287,18 +271,6 @@ function WalletButton({ wallet, connecting, onConnect }) {
     <button onClick={onConnect} disabled={connecting} className="primary-button">
       {connecting ? 'Linking' : hasWallet() ? 'Connect' : 'Wallet'}
     </button>
-  );
-}
-
-function FeaturedCard({ item }) {
-  return (
-    <article className="feature-card" style={{ backgroundImage: `url(${item.image})` }}>
-      <div className="feature-overlay" />
-      <div className="feature-content">
-        <h2>{item.title}</h2>
-        <p>by {item.author}</p>
-      </div>
-    </article>
   );
 }
 
@@ -325,7 +297,7 @@ function Composer({ text, setText, onSubmit, submitting, topic, status, step, mm
 
       <div className="composer-actions">
         <div className="policy-note">
-          <span /> AI validators check topic fit, spam, and toxicity.
+          <span /> Validator consensus may take a few minutes.
         </div>
         <button className="primary-button" disabled={submitting || !text.trim()} type="submit">
           {submitting ? 'Publishing' : 'Publish'}
@@ -431,55 +403,23 @@ function FeedItem({ post }) {
           {post.reason ? ` · ${post.reason}` : ''}
         </p>
       </div>
-      <div className="reply-stack" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-      </div>
     </li>
   );
 }
 
-function CommunityCard({ topic, members, contractAddress, network }) {
+function CommunityCard({ topic, contractAddress, network, total }) {
   return (
     <section id="community" className="panel">
       <span className="kicker">Community</span>
       <h2>{topic || 'Quorum Board'}</h2>
       <p>Public conversation moderated by validator consensus on GenLayer.</p>
       <div className="community-meta">
-        <span>{members.toLocaleString()} members</span>
+        <span>{total} on-chain posts</span>
         <span>{network ?? 'testnet-bradbury'}</span>
       </div>
       <a href="https://explorer-bradbury.genlayer.com/" target="_blank" rel="noreferrer">
         {short(contractAddress)} on Bradbury
       </a>
-    </section>
-  );
-}
-
-function Streaks({ authors }) {
-  const rows = authors.length > 0 ? authors : [];
-  return (
-    <section className="panel streak-panel">
-      <div className="section-head compact">
-        <div>
-          <h2>Top Streaks</h2>
-          <p>Recent on-chain participants</p>
-        </div>
-      </div>
-      {rows.length === 0 ? (
-        <p className="muted">Streaks appear after the first posts land.</p>
-      ) : (
-        <ol>
-          {rows.map((post, index) => (
-            <li key={`${post.index}-${post.author}`}>
-              <span className="avatar small">{initials(post.author)}</span>
-              <strong>{short(post.author)}</strong>
-              <em>{post.approved ? 1322 - index * 43 : 980 - index * 21}</em>
-            </li>
-          ))}
-        </ol>
-      )}
     </section>
   );
 }

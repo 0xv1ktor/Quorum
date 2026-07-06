@@ -11,7 +11,7 @@ It is a single GenLayer Intelligent Contract, live on **Testnet Bradbury
 (chain 4221)**:
 
 ```
-Contract: 0xd5E158d670Eedd111AB95A0e5C8867F1fD77c4E0
+Contract: 0xe451e8982dAC02C09D56DE6E51bC80FC2DfB0E26
 Explorer: https://explorer-bradbury.genlayer.com
 ```
 
@@ -163,5 +163,5 @@ moderation and on-chain reputation. Planned depth:
 
 ## Links
 
-- Contract on Bradbury: [`0xd5E158…7c4E0`](https://explorer-bradbury.genlayer.com/)
+- Contract on Bradbury: [`0xe451e8…fB0E26`](https://explorer-bradbury.genlayer.com/)
 - GenLayer docs: https://docs.genlayer.com
